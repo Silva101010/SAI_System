@@ -1,0 +1,80 @@
+{
+  "entities": {
+    "User": {
+      "title": "User Profile",
+      "description": "User profile for patients, doctors, receptionists, and admins.",
+      "type": "object",
+      "properties": {
+        "uid": { "type": "string", "description": "Firebase Auth UID" },
+        "name": { "type": "string", "description": "Full name" },
+        "email": { "type": "string", "description": "Email address" },
+        "role": { "type": "string", "enum": ["patient", "doctor", "receptionist", "admin"], "description": "User role" },
+        "specialty": { "type": "string", "description": "Doctor's specialty (if applicable)" },
+        "contact": { "type": "string", "description": "Contact number" },
+        "photoURL": { "type": "string", "description": "Profile photo URL" },
+        "missedAppointments": { "type": "integer", "description": "Count of missed appointments" },
+        "attendanceScore": { "type": "number", "description": "Score based on attendance history" },
+        "createdAt": { "type": "string", "format": "date-time", "description": "Account creation timestamp" }
+      },
+      "required": ["uid", "name", "email", "role"]
+    },
+    "Appointment": {
+      "title": "Appointment",
+      "description": "A medical appointment entry.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique appointment ID" },
+        "patientId": { "type": "string", "description": "ID of the patient" },
+        "patientName": { "type": "string", "description": "Denormalized patient name" },
+        "doctorId": { "type": "string", "description": "ID of the doctor" },
+        "doctorName": { "type": "string", "description": "Denormalized doctor name" },
+        "dateTime": { "type": "string", "format": "date-time", "description": "Scheduled date and time" },
+        "status": { "type": "string", "enum": ["scheduled", "checked-in", "in-progress", "completed", "cancelled", "no-show"], "description": "Current status of the appointment" },
+        "checkInTime": { "type": "string", "format": "date-time", "description": "Actual time of check-in" },
+        "priority": { "type": "integer", "description": "Dynamic priority for the queue" },
+        "notes": { "type": "string", "description": "Medical notes or patient comments" }
+      },
+      "required": ["patientId", "doctorId", "dateTime", "status"]
+    },
+    "DoctorSchedule": {
+      "title": "Doctor Schedule",
+      "description": "Configuration for a doctor's availability.",
+      "type": "object",
+      "properties": {
+        "doctorId": { "type": "string", "description": "ID of the doctor" },
+        "dayOfWeek": { "type": "integer", "description": "Day of the week (0-6)" },
+        "startTime": { "type": "string", "description": "Start time (HH:mm)" },
+        "endTime": { "type": "string", "description": "End time (HH:mm)" },
+        "slotDuration": { "type": "integer", "description": "Duration per consultation in minutes" }
+      },
+      "required": ["doctorId", "dayOfWeek", "startTime", "endTime", "slotDuration"]
+    },
+    "Specialty": {
+      "title": "Specialty",
+      "description": "Medical specialty available in the hospital.",
+      "type": "object",
+      "properties": {
+        "name": { "type": "string", "description": "Name of the specialty" }
+      },
+      "required": ["name"]
+    }
+  },
+  "firestore": {
+    "/users/{userId}": {
+      "schema": "User",
+      "description": "User profiles"
+    },
+    "/appointments/{appointmentId}": {
+      "schema": "Appointment",
+      "description": "All medical appointments"
+    },
+    "/schedules/{scheduleId}": {
+      "schema": "DoctorSchedule",
+      "description": "Doctor availability configurations"
+    },
+    "/specialties/{specialtyId}": {
+      "schema": "Specialty",
+      "description": "Available medical specialties"
+    }
+  }
+}

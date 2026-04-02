@@ -1,0 +1,171 @@
+rules_version = '2';
+service cloud.firestore {
+  match /databases/{database}/documents {
+    // ===============================================================
+    // Assumed Data Model
+    // ===============================================================
+    //
+    // Collection: users
+    // Document ID: userId (UID)
+    // Fields:
+    //   - uid: string (required)
+    //   - name: string (required)
+    //   - email: string (required)
+    //   - role: string (required, enum: patient, doctor, receptionist, admin)
+    //   - specialty: string (optional)
+    //   - contact: string (optional)
+    //   - missedAppointments: number (optional)
+    //   - attendanceScore: number (optional)
+    //
+    // Collection: appointments
+    // Document ID: appointmentId
+    // Fields:
+    //   - id: string (required)
+    //   - patientId: string (required)
+    //   - patientName: string (required)
+    //   - doctorId: string (required)
+    //   - doctorName: string (required)
+    //   - dateTime: string (required, ISO 8601)
+    //   - status: string (required, enum: scheduled, checked-in, in-progress, completed, cancelled, no-show)
+    //   - checkInTime: string (optional, ISO 8601)
+    //   - priority: number (optional)
+    //   - notes: string (optional)
+    //
+    // Collection: schedules
+    // Document ID: scheduleId
+    // Fields:
+    //   - doctorId: string (required)
+    //   - dayOfWeek: number (required, 0-6)
+    //   - startTime: string (required, HH:mm)
+    //   - endTime: string (required, HH:mm)
+    //   - slotDuration: number (required)
+    //
+    // Collection: specialties
+    // Document ID: specialtyId
+    // Fields:
+    //   - name: string (required)
+    //
+    // ===============================================================
+
+    // ===============================================================
+    // Helper Functions
+    // ===============================================================
+    function isAuthenticated() {
+      return request.auth != null;
+    }
+
+    function isOwner(userId) {
+      return isAuthenticated() && request.auth.uid == userId;
+    }
+
+    function isAdmin() {
+      return isAuthenticated() && (
+        (request.auth.token.email == "varilsonsilva64@gmail.com" && request.auth.token.email_verified == true) ||
+        (exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'admin')
+      );
+    }
+
+    function isDoctor() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'doctor';
+    }
+
+    function isReceptionist() {
+      return isAuthenticated() && exists(/databases/$(database)/documents/users/$(request.auth.uid)) && get(/databases/$(database)/documents/users/$(request.auth.uid)).data.role == 'receptionist';
+    }
+
+    function isValidEmail(email) {
+      return email is string && email.matches("^[a-zA-Z0-9._%+-]+@[a-zA-Z0-9.-]+\\.[a-zA-Z]{2,}$");
+    }
+
+    function isValidDateString(dateStr) {
+      return dateStr is string && dateStr.matches("^\\d{4}-\\d{2}-\\d{2}T\\d{2}:\\d{2}:\\d{2}.*Z?$");
+    }
+
+    // ===============================================================
+    // Domain Validators
+    // ===============================================================
+
+    function isValidUser(data) {
+      return data.keys().hasAll(['uid', 'name', 'email', 'role']) &&
+             data.uid is string &&
+             data.name is string && data.name.size() > 0 && data.name.size() < 100 &&
+             isValidEmail(data.email) &&
+             data.role in ['patient', 'doctor', 'receptionist', 'admin'] &&
+             (!('photoURL' in data) || (data.photoURL is string && data.photoURL.size() < 1000)) &&
+             (!('specialty' in data) || (data.specialty is string && data.specialty.size() < 100)) &&
+             (!('contact' in data) || (data.contact is string && data.contact.size() < 50)) &&
+             (!('missedAppointments' in data) || (data.missedAppointments is number)) &&
+             (!('attendanceScore' in data) || (data.attendanceScore is number)) &&
+             (!('createdAt' in data) || (data.createdAt is string));
+    }
+
+    function isValidAppointment(data) {
+      return data.keys().hasAll(['patientId', 'doctorId', 'dateTime', 'status']) &&
+             data.patientId is string &&
+             data.doctorId is string &&
+             isValidDateString(data.dateTime) &&
+             data.status in ['scheduled', 'checked-in', 'in-progress', 'completed', 'cancelled', 'no-show'] &&
+             (!('id' in data) || (data.id is string)) &&
+             (!('createdAt' in data) || (data.createdAt is string)) &&
+             (!('patientName' in data) || (data.patientName is string && data.patientName.size() < 100)) &&
+             (!('doctorName' in data) || (data.doctorName is string && data.doctorName.size() < 100)) &&
+             (!('checkInTime' in data) || (isValidDateString(data.checkInTime))) &&
+             (!('notes' in data) || (data.notes is string && data.notes.size() < 1000));
+    }
+
+    function isValidSchedule(data) {
+      return data.keys().hasAll(['doctorId', 'dayOfWeek', 'startTime', 'endTime', 'slotDuration']) &&
+             data.doctorId is string &&
+             data.dayOfWeek is number && data.dayOfWeek >= 0 && data.dayOfWeek <= 6 &&
+             data.startTime is string && data.startTime.matches("^\\d{2}:\\d{2}$") &&
+             data.endTime is string && data.endTime.matches("^\\d{2}:\\d{2}$") &&
+             data.slotDuration is number && data.slotDuration > 0;
+    }
+
+    // ===============================================================
+    // Rules
+    // ===============================================================
+
+    match /users/{userId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidUser(request.resource.data) && (
+        (isOwner(userId) && request.resource.data.role != 'admin') || 
+        isAdmin() || 
+        isReceptionist()
+      );
+      allow update: if isAuthenticated() && isValidUser(request.resource.data) && (
+        (isOwner(userId) && request.resource.data.role == resource.data.role) || 
+        isAdmin() || 
+        isReceptionist()
+      );
+      allow delete: if isAdmin();
+    }
+
+    match /appointments/{appointmentId} {
+      allow read: if isAuthenticated();
+      allow create: if isAuthenticated() && isValidAppointment(request.resource.data) && (
+        request.resource.data.patientId == request.auth.uid || isAdmin() || isReceptionist()
+      );
+      allow update: if isAuthenticated() && isValidAppointment(request.resource.data) && (
+        request.resource.data.patientId == resource.data.patientId || 
+        request.resource.data.doctorId == request.auth.uid || 
+        isAdmin() || 
+        isReceptionist() ||
+        isDoctor()
+      );
+      allow delete: if isAdmin() || isReceptionist() || isOwner(resource.data.patientId);
+    }
+
+    match /schedules/{scheduleId} {
+      allow read: if isAuthenticated();
+      allow create: if (isAdmin() || isDoctor() || isReceptionist()) && isValidSchedule(request.resource.data);
+      allow update: if (isAdmin() || isDoctor() || isReceptionist()) && isValidSchedule(request.resource.data);
+      allow delete: if isAdmin() || isReceptionist() || isOwner(resource.data.doctorId);
+    }
+
+    match /specialties/{specialtyId} {
+      allow read: if isAuthenticated();
+      allow write: if isAdmin() || isReceptionist();
+    }
+  }
+}

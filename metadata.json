@@ -1,0 +1,5 @@
+{
+  "name": "Sistema de Agendamento Inteligente (SAI)",
+  "description": "Solução para otimizar a gestão de consultas hospitalares com busca por especialidade, fila dinâmica e check-in inteligente.",
+  "requestFramePermissions": []
+}
