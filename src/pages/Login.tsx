@@ -70,9 +70,9 @@ export default function Login() {
       {/* Back Arrow */}
       <Link 
         to="/" 
-        className="absolute top-8 left-8 z-50 flex items-center gap-2 text-gray-500 hover:text-primary transition-colors group"
+        className="absolute top-8 left-8 z-50 flex items-center gap-2 text-foreground/50 hover:text-primary transition-colors group"
       >
-        <div className="w-10 h-10 rounded-full bg-white shadow-sm border border-gray-100 flex items-center justify-center group-hover:border-primary/30 group-hover:shadow-md transition-all">
+        <div className="w-10 h-10 rounded-full bg-card shadow-sm border border-border flex items-center justify-center group-hover:border-primary/30 group-hover:shadow-md transition-all">
           <ArrowLeft className="w-5 h-5" />
         </div>
         <span className="text-xs font-bold uppercase tracking-widest hidden sm:inline">Voltar</span>
@@ -118,34 +118,34 @@ export default function Login() {
         >
           <div className="mb-10">
             <h2 className="text-4xl font-serif font-bold text-foreground mb-2">Bem-vindo de volta</h2>
-            <p className="text-gray-500">Acesse sua conta para gerenciar seus agendamentos.</p>
+            <p className="text-foreground/60">Acesse sua conta para gerenciar seus agendamentos.</p>
           </div>
 
           <div className="space-y-6">
             <form onSubmit={handleEmailLogin} className="space-y-4">
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-500">Email</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-foreground/50">Email</label>
                 <div className="relative">
                   <Mail className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input 
                     type="email" 
                     value={email}
                     onChange={(e) => setEmail(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 rounded-2xl border border-gray-100 focus:ring-2 focus:ring-primary/20 outline-none transition-all" 
+                    className="w-full pl-12 pr-4 py-4 bg-background rounded-2xl border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground" 
                     placeholder="seu@email.com" 
                   />
                 </div>
               </div>
 
               <div className="space-y-2">
-                <label className="text-xs font-bold uppercase tracking-widest text-gray-500">Senha</label>
+                <label className="text-xs font-bold uppercase tracking-widest text-foreground/50">Senha</label>
                 <div className="relative">
                   <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
                   <input 
                     type="password" 
                     value={password}
                     onChange={(e) => setPassword(e.target.value)}
-                    className="w-full pl-12 pr-4 py-4 bg-gray-50 rounded-2xl border border-gray-100 focus:ring-2 focus:ring-primary/20 outline-none transition-all" 
+                    className="w-full pl-12 pr-4 py-4 bg-background rounded-2xl border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground" 
                     placeholder="••••••••" 
                   />
                 </div>
@@ -163,23 +163,23 @@ export default function Login() {
 
             <div className="relative py-4">
               <div className="absolute inset-0 flex items-center">
-                <div className="w-full border-t border-gray-100"></div>
+                <div className="w-full border-t border-border"></div>
               </div>
               <div className="relative flex justify-center text-xs uppercase">
-                <span className="bg-background px-2 text-gray-400">Ou continue com</span>
+                <span className="bg-background px-2 text-foreground/40">Ou continue com</span>
               </div>
             </div>
 
             <button
               onClick={handleGoogleLogin}
               disabled={loading}
-              className="w-full bg-white text-gray-700 py-4 rounded-full font-bold border border-gray-200 shadow-sm hover:bg-gray-50 transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"
+              className="w-full bg-card text-foreground py-4 rounded-full font-bold border border-border shadow-sm hover:bg-background transition-all flex items-center justify-center gap-3 group disabled:opacity-50 disabled:cursor-not-allowed"
             >
               <LogIn className="w-5 h-5 text-primary" />
               Google
             </button>
 
-            <p className="text-center text-sm text-gray-500 mt-8">
+            <p className="text-center text-sm text-foreground/60 mt-8">
               Não possui uma conta?{' '}
               <Link to="/register" className="text-primary font-bold hover:underline">
                 Criar Conta
@@ -188,7 +188,7 @@ export default function Login() {
           </div>
 
           <div className="mt-12 text-center">
-            <p className="text-[10px] text-gray-400 uppercase tracking-[0.2em] leading-relaxed">
+            <p className="text-[10px] text-foreground/40 uppercase tracking-[0.2em] leading-relaxed">
               Hospital Geral & Centro de Saúde<br />
               <span className="opacity-50">© 2026 SAI - Sistema de Agendamento Inteligente</span>
             </p>

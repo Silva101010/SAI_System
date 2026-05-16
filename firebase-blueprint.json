@@ -57,6 +57,35 @@
         "name": { "type": "string", "description": "Name of the specialty" }
       },
       "required": ["name"]
+    },
+    "Notification": {
+      "title": "Notification",
+      "description": "System notification for users.",
+      "type": "object",
+      "properties": {
+        "id": { "type": "string", "description": "Unique notification ID" },
+        "userId": { "type": "string", "description": "ID of the recipient user" },
+        "title": { "type": "string", "description": "Short title of the notification" },
+        "message": { "type": "string", "description": "Detailed message" },
+        "type": { "type": "string", "enum": ["alert", "info", "success"], "description": "Type of notification" },
+        "time": { "type": "string", "format": "date-time", "description": "Timestamp of the notification" },
+        "read": { "type": "boolean", "description": "Whether the notification has been read" }
+      },
+      "required": ["userId", "title", "message", "type", "time", "read"]
+    },
+    "PublicQueueEntry": {
+      "title": "Public Queue Entry",
+      "description": "Anonymous appointment info for queue calculation.",
+      "type": "object",
+      "properties": {
+        "doctorId": { "type": "string", "description": "ID of the doctor" },
+        "status": { "type": "string", "description": "Appointment status" },
+        "dateTime": { "type": "string", "format": "date-time", "description": "Scheduled time" },
+        "checkInTime": { "type": "string", "format": "date-time", "description": "Check-in time" },
+        "priority": { "type": "integer", "description": "Priority level" },
+        "day": { "type": "string", "description": "Date in YYYY-MM-DD format" }
+      },
+      "required": ["doctorId", "status", "dateTime", "day"]
     }
   },
   "firestore": {
@@ -75,6 +104,14 @@
     "/specialties/{specialtyId}": {
       "schema": "Specialty",
       "description": "Available medical specialties"
+    },
+    "/notifications/{notificationId}": {
+      "schema": "Notification",
+      "description": "System notifications for all users"
+    },
+    "/public_queue/{appointmentId}": {
+      "schema": "PublicQueueEntry",
+      "description": "Anonymous queue data"
     }
   }
 }

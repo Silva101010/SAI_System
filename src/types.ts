@@ -15,7 +15,7 @@ export interface UserProfile {
   bio?: string;
 }
 
-export type AppointmentStatus = 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled' | 'no-show';
+export type AppointmentStatus = 'scheduled' | 'checked-in' | 'in-progress' | 'completed' | 'cancelled' | 'no-show' | 'pending';
 
 export interface Appointment {
   id: string;
@@ -43,4 +43,14 @@ export interface Specialty {
   id: string;
   name: string;
   description?: string;
+}
+
+export interface Notification {
+  id: string;
+  userId: string;
+  title: string;
+  message: string;
+  type: 'alert' | 'info' | 'success';
+  time: string; // ISO 8601
+  read: boolean;
 }

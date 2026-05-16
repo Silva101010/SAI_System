@@ -26,7 +26,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
   return (
     <div className="min-h-screen bg-background font-sans flex flex-col">
       {/* Navigation */}
-      <nav className="h-20 bg-white/80 backdrop-blur-md border-b border-gray-100 fixed w-full z-50 px-8 flex items-center justify-between">
+      <nav className="h-20 bg-background/80 backdrop-blur-md border-b border-border fixed w-full z-50 px-8 flex items-center justify-between">
         <Link to="/" className="flex items-center gap-2">
           <div className="w-10 h-10 bg-primary rounded-xl flex items-center justify-center shadow-lg">
             <HeartPulse className="text-white w-6 h-6" />
@@ -34,7 +34,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
           <span className="text-2xl font-serif font-bold text-foreground tracking-tight">SAI</span>
         </Link>
         
-        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-gray-600 uppercase tracking-widest">
+        <div className="hidden md:flex items-center gap-8 text-sm font-medium text-foreground/70 uppercase tracking-widest">
           <Link to="/" className="hover:text-primary transition-colors">Início</Link>
           <Link to="/como-funciona" className="hover:text-primary transition-colors">Como Funciona</Link>
           <Link to="/para-pacientes" className="hover:text-primary transition-colors">Pacientes</Link>
@@ -52,7 +52,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
               </Link>
               <button 
                 onClick={handleLogout}
-                className="text-gray-500 hover:text-red-500 font-bold text-sm transition-colors flex items-center gap-1 px-2"
+                className="text-foreground/50 hover:text-red-500 font-bold text-sm transition-colors flex items-center gap-1 px-2"
               >
                 <LogOut className="w-4 h-4" />
                 Sair
@@ -62,7 +62,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             <>
               <Link 
                 to="/login"
-                className="text-gray-600 hover:text-primary font-bold text-sm transition-colors px-4"
+                className="text-foreground/70 hover:text-primary font-bold text-sm transition-colors px-4"
               >
                 Entrar
               </Link>
@@ -83,7 +83,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
       </main>
 
       {/* Improved Footer */}
-      <footer className="bg-white border-t border-gray-200 pt-16 pb-8 px-8">
+      <footer className="bg-card border-t border-border pt-16 pb-8 px-8">
         <div className="max-w-7xl mx-auto">
           <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-12 mb-16">
             {/* Brand Column */}
@@ -94,17 +94,17 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
                 </div>
                 <span className="text-2xl font-serif font-bold text-foreground">SAI</span>
               </div>
-              <p className="text-gray-500 leading-relaxed">
+              <p className="text-foreground/60 leading-relaxed">
                 Revolucionando a gestão hospitalar com inteligência e foco no cuidado humano. Otimizamos processos para que você foque no que importa: a saúde.
               </p>
               <div className="flex gap-4">
-                <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all">
+                <a href="https://www.instagram.com/as_solutions10?igsh=NzVpOTNmeG96OGcw" target="_blank" rel="noopener noreferrer" className="w-10 h-10 rounded-full bg-background flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all">
                   <Instagram className="w-5 h-5" />
                 </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all">
+                <a href="#" className="w-10 h-10 rounded-full bg-background flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all">
                   <Linkedin className="w-5 h-5" />
                 </a>
-                <a href="#" className="w-10 h-10 rounded-full bg-gray-50 flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all">
+                <a href="#" className="w-10 h-10 rounded-full bg-background flex items-center justify-center text-gray-400 hover:bg-primary hover:text-white transition-all">
                   <Twitter className="w-5 h-5" />
                 </a>
               </div>
@@ -113,7 +113,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             {/* Useful Links */}
             <div>
               <h4 className="text-foreground font-serif font-bold text-lg mb-6">Links Úteis</h4>
-              <ul className="space-y-4 text-gray-500">
+              <ul className="space-y-4 text-foreground/60">
                 <li><Link to="/como-funciona" className="hover:text-primary transition-colors">Como Funciona</Link></li>
                 <li><Link to="/para-pacientes" className="hover:text-primary transition-colors">Para Pacientes</Link></li>
                 <li><Link to="/para-medicos" className="hover:text-primary transition-colors">Para Médicos</Link></li>
@@ -125,7 +125,7 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             {/* Support */}
             <div>
               <h4 className="text-foreground font-serif font-bold text-lg mb-6">Suporte</h4>
-              <ul className="space-y-4 text-gray-500">
+              <ul className="space-y-4 text-foreground/60">
                 <li><Link to="/ajuda" className="hover:text-primary transition-colors">Central de Ajuda</Link></li>
                 <li><Link to="/faq" className="hover:text-primary transition-colors">Perguntas Frequentes</Link></li>
               </ul>
@@ -134,31 +134,27 @@ export default function PublicLayout({ children }: PublicLayoutProps) {
             {/* Contact Info */}
             <div>
               <h4 className="text-foreground font-serif font-bold text-lg mb-6">Contato</h4>
-              <ul className="space-y-4 text-gray-500">
+              <ul className="space-y-4 text-foreground/60">
                 <li className="flex items-start gap-3">
                   <MapPin className="w-5 h-5 text-primary shrink-0" />
-                  <span>Av. da Saúde, 1000 - Centro, São Paulo - SP</span>
+                  <span>Kuito, Bié Centralidade Horizonte do cuito</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Phone className="w-5 h-5 text-primary shrink-0" />
-                  <span>(11) 4004-0000</span>
+                  <span>927702293</span>
                 </li>
                 <li className="flex items-center gap-3">
                   <Mail className="w-5 h-5 text-primary shrink-0" />
-                  <span>contato@sai-hospital.com.br</span>
+                  <span>asgrupo69@gmail.com</span>
                 </li>
               </ul>
             </div>
           </div>
 
-          <div className="pt-8 border-t border-gray-100 flex flex-col md:flex-row justify-between items-center gap-4">
-            <p className="text-sm text-gray-400">
+          <div className="pt-8 border-t border-border flex flex-col md:flex-row justify-between items-center gap-4 text-center md:text-left">
+            <p className="text-sm text-foreground/40">
               © 2026 Sistema de Agendamento Inteligente. Desenvolvido com foco na excelência clínica.
             </p>
-            <div className="flex gap-8 text-xs font-bold text-gray-400 uppercase tracking-widest">
-              <span>CNPJ: 00.000.000/0001-00</span>
-              <span>CRM-SP: 000000</span>
-            </div>
           </div>
         </div>
       </footer>

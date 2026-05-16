@@ -6,6 +6,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
 import { UserProfile, Specialty, Appointment } from '../types';
 import { format } from 'date-fns';
+import { createNotification } from '../services/notificationService';
 
 interface NewAppointmentModalProps {
   isOpen: boolean;
@@ -113,6 +114,14 @@ export default function NewAppointmentModal({ isOpen, onClose }: NewAppointmentM
         createdAt: new Date().toISOString()
       });
 
+      // Notify Doctor
+      await createNotification({
+        userId: selectedDoctorId,
+        title: 'Novo Paciente na Fila',
+        message: `${patientName.trim()} foi adicionado à sua fila de espera agora.`,
+        type: 'success'
+      });
+
       toast.success(`Agendamento realizado para as ${format(nextDateTime, 'HH:mm')}!`);
       onClose();
       setPatientName('');
@@ -133,47 +142,47 @@ export default function NewAppointmentModal({ isOpen, onClose }: NewAppointmentM
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-white rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden"
+            className="bg-card rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden border border-border"
           >
             <div className="p-8">
               <div className="flex justify-between items-center mb-8">
                 <div className="space-y-1">
                   <h2 className="text-2xl font-serif font-bold text-foreground">Agendamento Imediato</h2>
-                  <p className="text-xs text-gray-500">O paciente será adicionado à próxima vaga disponível na fila.</p>
+                  <p className="text-xs text-foreground/60">O paciente será adicionado à próxima vaga disponível na fila.</p>
                 </div>
                 <button 
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-background rounded-full transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-400" />
+                  <X className="w-6 h-6 text-foreground/40" />
                 </button>
               </div>
 
               <form onSubmit={handleSubmit} className="space-y-6">
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-2">Nome do Paciente</label>
+                    <label className="text-xs font-bold uppercase tracking-widest text-foreground/50 ml-2">Nome do Paciente</label>
                     <div className="relative">
-                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
                       <input
                         type="text"
                         value={patientName}
                         onChange={(e) => setPatientName(e.target.value)}
                         placeholder="Introduzir nome completo"
-                        className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-2xl border border-gray-100 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                        className="w-full pl-12 pr-4 py-3 bg-background rounded-2xl border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground"
                         required
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-2">Médico</label>
+                    <label className="text-xs font-bold uppercase tracking-widest text-foreground/50 ml-2">Médico</label>
                     <div className="relative">
-                      <Stethoscope className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Stethoscope className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
                       <select
                         value={selectedDoctorId}
                         onChange={(e) => setSelectedDoctorId(e.target.value)}
-                        className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-2xl border border-gray-100 focus:ring-2 focus:ring-primary/20 outline-none transition-all appearance-none"
+                        className="w-full pl-12 pr-4 py-3 bg-background rounded-2xl border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all appearance-none text-foreground"
                         required
                       >
                         <option value="">Selecionar Médico</option>
@@ -185,23 +194,23 @@ export default function NewAppointmentModal({ isOpen, onClose }: NewAppointmentM
 
                 <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-2">Data</label>
+                    <label className="text-xs font-bold uppercase tracking-widest text-foreground/50 ml-2">Data</label>
                     <div className="relative">
-                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                      <Calendar className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
                       <input
                         type="date"
                         value={selectedDate}
-                        className="w-full pl-12 pr-4 py-3 bg-gray-100 rounded-2xl border border-gray-100 outline-none transition-all cursor-not-allowed"
+                        className="w-full pl-12 pr-4 py-3 bg-background/50 rounded-2xl border border-border outline-none transition-all cursor-not-allowed text-foreground/60"
                         readOnly
                       />
                     </div>
                   </div>
 
                   <div className="space-y-2">
-                    <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-2">Horário</label>
+                    <label className="text-xs font-bold uppercase tracking-widest text-foreground/50 ml-2">Horário</label>
                     <div className="relative">
-                      <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
-                      <div className="w-full pl-12 pr-4 py-3 bg-gray-100 rounded-2xl border border-gray-100 text-sm text-gray-500 italic">
+                      <Clock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
+                      <div className="w-full pl-12 pr-4 py-3 bg-background/50 rounded-2xl border border-border text-sm text-foreground/40 italic">
                         Próxima vaga na fila
                       </div>
                     </div>

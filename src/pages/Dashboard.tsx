@@ -21,7 +21,7 @@ export default function Dashboard() {
       <div className="flex items-center justify-center h-screen bg-background p-8 text-center">
         <div className="max-w-md">
           <h2 className="text-2xl font-serif font-bold text-foreground mb-4">Perfil não encontrado</h2>
-          <p className="text-gray-500 mb-8">Não conseguimos carregar o seu perfil de utilizador. Por favor, tente recarregar a página ou contacte o suporte.</p>
+          <p className="text-foreground/60 mb-8">Não conseguimos carregar o seu perfil de utilizador. Por favor, tente recarregar a página ou contacte o suporte.</p>
           <button 
             onClick={() => window.location.reload()}
             className="bg-primary text-white px-8 py-3 rounded-full font-bold hover:bg-primary-hover transition-all"

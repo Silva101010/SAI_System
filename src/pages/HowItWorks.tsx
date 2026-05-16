@@ -17,12 +17,6 @@ export default function HowItWorks() {
       color: "bg-accent/10 text-accent"
     },
     {
-      title: "Check-in via QR Code",
-      description: "Ao chegar na clínica, o paciente realiza o check-in escaneando um QR Code, sem precisar passar pela recepção.",
-      icon: Smartphone,
-      color: "bg-primary/10 text-primary"
-    },
-    {
       title: "Fila Dinâmica",
       description: "Nosso algoritmo organiza a ordem de atendimento baseada no horário agendado e na prioridade clínica.",
       icon: Clock,
@@ -66,7 +60,7 @@ export default function HowItWorks() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed"
+              className="text-xl text-foreground/60 max-w-2xl mx-auto leading-relaxed"
             >
               Entenda como nossa tecnologia conecta pacientes e médicos de forma eficiente, reduzindo burocracias e tempos de espera.
             </motion.p>
@@ -80,7 +74,7 @@ export default function HowItWorks() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="relative p-10 bg-white rounded-[40px] shadow-sm border border-gray-100 hover:shadow-xl transition-all group"
+                className="relative p-10 bg-card rounded-[40px] shadow-sm border border-border hover:shadow-xl transition-all group"
               >
                 <div className="absolute -top-6 -left-6 w-12 h-12 bg-primary text-white rounded-full flex items-center justify-center font-serif font-bold text-xl shadow-lg z-10">
                   {index + 1}
@@ -89,7 +83,7 @@ export default function HowItWorks() {
                   <step.icon className="w-8 h-8" />
                 </div>
                 <h3 className="text-2xl font-serif font-bold text-foreground mb-4">{step.title}</h3>
-                <p className="text-gray-500 leading-relaxed">
+                <p className="text-foreground/60 leading-relaxed">
                   {step.description}
                 </p>
               </motion.div>
@@ -107,9 +101,13 @@ export default function HowItWorks() {
               <p className="text-lg text-white/80 mb-10 max-w-2xl mx-auto">
                 Junte-se a centenas de instituições que já utilizam o SAI para oferecer um atendimento de excelência.
               </p>
-              <button className="bg-white text-primary px-12 py-4 rounded-full font-bold text-lg hover:bg-gray-100 transition-all shadow-xl">
+              <motion.button 
+                whileHover={{ scale: 1.05 }}
+                whileTap={{ scale: 0.95 }}
+                className="bg-card text-primary px-12 py-4 rounded-full font-bold text-lg hover:bg-background transition-all shadow-xl"
+              >
                 Agende uma Demonstração
-              </button>
+              </motion.button>
             </div>
             <div className="absolute top-0 right-0 w-64 h-64 bg-white/5 rounded-full -mr-32 -mt-32 blur-3xl"></div>
             <div className="absolute bottom-0 left-0 w-64 h-64 bg-white/5 rounded-full -ml-32 -mb-32 blur-3xl"></div>

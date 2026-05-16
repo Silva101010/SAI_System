@@ -7,6 +7,7 @@ import { ref, uploadBytes, getDownloadURL } from 'firebase/storage';
 import { X, User, Phone, Mail, Shield, Camera, Lock, Eye, EyeOff, Loader2 } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import { toast } from 'sonner';
+import { triggerSyncIndicator } from '../lib/utils';
 
 interface ProfileModalProps {
   isOpen: boolean;
@@ -117,17 +118,24 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
     if (!profile) return;
 
     setLoading(true);
+    triggerSyncIndicator();
+    const promise = updateDoc(doc(db, 'users', profile.uid), {
+      name,
+      contact,
+      specialty: profile.role === 'doctor' ? specialty : profile.specialty
+    });
+
+    toast.promise(promise, {
+      loading: 'A atualizar perfil...',
+      success: 'Perfil atualizado com sucesso!',
+      error: 'Erro ao atualizar perfil.'
+    });
+
     try {
-      await updateDoc(doc(db, 'users', profile.uid), {
-        name,
-        contact,
-        specialty: profile.role === 'doctor' ? specialty : profile.specialty
-      });
-      toast.success('Perfil atualizado com sucesso!');
+      await promise;
       onClose();
     } catch (error) {
       console.error('Error updating profile:', error);
-      toast.error('Erro ao atualizar perfil.');
     } finally {
       setLoading(false);
     }
@@ -141,23 +149,23 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
             initial={{ opacity: 0, scale: 0.95, y: 20 }}
             animate={{ opacity: 1, scale: 1, y: 0 }}
             exit={{ opacity: 0, scale: 0.95, y: 20 }}
-            className="bg-white rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden my-8"
+            className="bg-card rounded-[32px] shadow-2xl w-full max-w-lg overflow-hidden my-8 border border-border"
           >
             <div className="p-8">
               <div className="flex justify-between items-center mb-6">
                 <h2 className="text-2xl font-serif font-bold text-foreground">Meus Dados</h2>
                 <button 
                   onClick={onClose}
-                  className="p-2 hover:bg-gray-100 rounded-full transition-colors"
+                  className="p-2 hover:bg-background rounded-full transition-colors"
                 >
-                  <X className="w-6 h-6 text-gray-400" />
+                  <X className="w-6 h-6 text-foreground/40" />
                 </button>
               </div>
 
               {/* Photo Section */}
               <div className="flex flex-col items-center mb-8">
                 <div className="relative group">
-                  <div className="w-24 h-24 rounded-full bg-gray-100 border-4 border-white shadow-md overflow-hidden flex items-center justify-center">
+                  <div className="w-24 h-24 rounded-full bg-background border-4 border-card shadow-md overflow-hidden flex items-center justify-center">
                     {profile?.photoURL ? (
                       <img 
                         src={profile.photoURL} 
@@ -166,7 +174,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         referrerPolicy="no-referrer"
                       />
                     ) : (
-                      <User className="w-12 h-12 text-gray-300" />
+                      <User className="w-12 h-12 text-foreground/20" />
                     )}
                     {uploadingPhoto && (
                       <div className="absolute inset-0 bg-black/40 flex items-center justify-center">
@@ -189,36 +197,36 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                     accept="image/*"
                   />
                 </div>
-                <p className="text-[10px] text-gray-400 mt-2 uppercase tracking-widest">Clique na câmara para alterar a foto</p>
+                <p className="text-[10px] text-foreground/40 mt-2 uppercase tracking-widest">Clique na câmara para alterar a foto</p>
               </div>
 
               <div className="space-y-8">
                 <form onSubmit={handleSubmit} className="space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
                     <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-2">Nome Completo</label>
+                      <label className="text-xs font-bold uppercase tracking-widest text-foreground/50 ml-2">Nome Completo</label>
                       <div className="relative">
-                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <User className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
                         <input
                           type="text"
                           value={name}
                           onChange={(e) => setName(e.target.value)}
-                          className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-2xl border border-gray-100 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                          className="w-full pl-12 pr-4 py-3 bg-background/50 rounded-2xl border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground"
                           required
                         />
                       </div>
                     </div>
 
                     <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-2">Contacto</label>
+                      <label className="text-xs font-bold uppercase tracking-widest text-foreground/50 ml-2">Contacto</label>
                       <div className="relative">
-                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Phone className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
                         <input
                           type="tel"
                           value={contact}
                           onChange={(e) => setContact(e.target.value)}
                           placeholder="+244 9XX XXX XXX"
-                          className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-2xl border border-gray-100 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                          className="w-full pl-12 pr-4 py-3 bg-background/50 rounded-2xl border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground"
                         />
                       </div>
                     </div>
@@ -226,28 +234,28 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
                   {profile?.role === 'doctor' && (
                     <div className="space-y-2">
-                      <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-2">Especialidade</label>
+                      <label className="text-xs font-bold uppercase tracking-widest text-foreground/50 ml-2">Especialidade</label>
                       <div className="relative">
-                        <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                        <Shield className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
                         <input
                           type="text"
                           value={specialty}
                           onChange={(e) => setSpecialty(e.target.value)}
                           placeholder="Ex: Cardiologia"
-                          className="w-full pl-12 pr-4 py-3 bg-gray-50 rounded-2xl border border-gray-100 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                          className="w-full pl-12 pr-4 py-3 bg-background/50 rounded-2xl border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground"
                           required
                         />
                       </div>
                     </div>
                   )}
 
-                  <div className="p-4 bg-gray-50 rounded-2xl flex items-center justify-between">
+                  <div className="p-4 bg-background/50 rounded-2xl flex items-center justify-between border border-border">
                     <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm text-foreground/40">
                         <Mail className="w-4 h-4 text-primary" />
                         <span>{profile?.email}</span>
                       </div>
-                      <div className="flex items-center gap-2 text-sm text-gray-600">
+                      <div className="flex items-center gap-2 text-sm text-foreground/40">
                         <Shield className="w-4 h-4 text-primary" />
                         <span className="capitalize">{profile?.role}</span>
                       </div>
@@ -263,7 +271,7 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                 </form>
 
                 {/* Password Section */}
-                <div className="pt-6 border-t border-gray-100">
+                <div className="pt-6 border-t border-border">
                   <button 
                     onClick={() => setShowPasswordSection(!showPasswordSection)}
                     className="flex items-center gap-2 text-sm font-bold text-primary hover:underline mb-4"
@@ -282,20 +290,20 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
                         className="space-y-4 overflow-hidden"
                       >
                         <div className="space-y-2">
-                          <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-2">Senha Atual</label>
+                          <label className="text-xs font-bold uppercase tracking-widest text-foreground/50 ml-2">Senha Atual</label>
                           <div className="relative">
-                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-gray-400" />
+                            <Lock className="absolute left-4 top-1/2 -translate-y-1/2 w-5 h-5 text-foreground/40" />
                             <input
                               type={showPasswords ? "text" : "password"}
                               value={currentPassword}
                               onChange={(e) => setCurrentPassword(e.target.value)}
-                              className="w-full pl-12 pr-12 py-3 bg-gray-50 rounded-2xl border border-gray-100 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                              className="w-full pl-12 pr-12 py-3 bg-background/50 rounded-2xl border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground"
                               required
                             />
                             <button 
                               type="button"
                               onClick={() => setShowPasswords(!showPasswords)}
-                              className="absolute right-4 top-1/2 -translate-y-1/2 text-gray-400 hover:text-primary"
+                              className="absolute right-4 top-1/2 -translate-y-1/2 text-foreground/40 hover:text-primary"
                             >
                               {showPasswords ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
                             </button>
@@ -304,22 +312,22 @@ export default function ProfileModal({ isOpen, onClose }: ProfileModalProps) {
 
                         <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                           <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-2">Nova Senha</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-foreground/50 ml-2">Nova Senha</label>
                             <input
                               type={showPasswords ? "text" : "password"}
                               value={newPassword}
                               onChange={(e) => setNewPassword(e.target.value)}
-                              className="w-full px-4 py-3 bg-gray-50 rounded-2xl border border-gray-100 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                              className="w-full px-4 py-3 bg-background/50 rounded-2xl border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground"
                               required
                             />
                           </div>
                           <div className="space-y-2">
-                            <label className="text-xs font-bold uppercase tracking-widest text-gray-500 ml-2">Confirmar Nova Senha</label>
+                            <label className="text-xs font-bold uppercase tracking-widest text-foreground/50 ml-2">Confirmar Nova Senha</label>
                             <input
                               type={showPasswords ? "text" : "password"}
                               value={confirmPassword}
                               onChange={(e) => setConfirmPassword(e.target.value)}
-                              className="w-full px-4 py-3 bg-gray-50 rounded-2xl border border-gray-100 focus:ring-2 focus:ring-primary/20 outline-none transition-all"
+                              className="w-full px-4 py-3 bg-background/50 rounded-2xl border border-border focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground"
                               required
                             />
                           </div>

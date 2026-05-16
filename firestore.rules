@@ -122,6 +122,26 @@ service cloud.firestore {
              data.slotDuration is number && data.slotDuration > 0;
     }
 
+    function isValidNotification(data) {
+      return data.keys().hasAll(['userId', 'title', 'message', 'type', 'time', 'read']) &&
+             data.userId is string &&
+             data.title is string && data.title.size() > 0 && data.title.size() < 200 &&
+             data.message is string && data.message.size() > 0 && data.message.size() < 1000 &&
+             data.type in ['alert', 'info', 'success'] &&
+             isValidDateString(data.time) &&
+             data.read is bool;
+    }
+
+    function isValidPublicQueueEntry(data) {
+      return data.keys().hasAll(['doctorId', 'status', 'dateTime', 'day']) &&
+             data.doctorId is string &&
+             data.status is string &&
+             isValidDateString(data.dateTime) &&
+             data.day is string && data.day.matches("^\\d{4}-\\d{2}-\\d{2}$") &&
+             (!('checkInTime' in data) || isValidDateString(data.checkInTime)) &&
+             (!('priority' in data) || data.priority is number);
+    }
+
     // ===============================================================
     // Rules
     // ===============================================================
@@ -142,7 +162,12 @@ service cloud.firestore {
     }
 
     match /appointments/{appointmentId} {
-      allow read: if isAuthenticated();
+      allow read: if isAuthenticated() && (
+        resource.data.patientId == request.auth.uid || 
+        resource.data.doctorId == request.auth.uid || 
+        isAdmin() || 
+        isReceptionist()
+      );
       allow create: if isAuthenticated() && isValidAppointment(request.resource.data) && (
         request.resource.data.patientId == request.auth.uid || isAdmin() || isReceptionist()
       );
@@ -166,6 +191,18 @@ service cloud.firestore {
     match /specialties/{specialtyId} {
       allow read: if isAuthenticated();
       allow write: if isAdmin() || isReceptionist();
+    }
+
+    match /notifications/{notificationId} {
+      allow read: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin() || isReceptionist());
+      allow create: if isAuthenticated() && isValidNotification(request.resource.data);
+      allow update: if isAuthenticated() && resource.data.userId == request.auth.uid && request.resource.data.diff(resource.data).affectedKeys().hasOnly(['read']);
+      allow delete: if isAuthenticated() && (resource.data.userId == request.auth.uid || isAdmin());
+    }
+
+    match /public_queue/{appointmentId} {
+      allow read: if isAuthenticated();
+      allow write: if isAuthenticated() && isValidPublicQueueEntry(request.resource.data);
     }
   }
 }

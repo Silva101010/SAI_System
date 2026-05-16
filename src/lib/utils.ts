@@ -34,6 +34,10 @@ export interface FirestoreErrorInfo {
   }
 }
 
+export function triggerSyncIndicator() {
+  window.dispatchEvent(new CustomEvent('firestore-sync'));
+}
+
 export function handleFirestoreError(error: unknown, operationType: OperationType, path: string | null) {
   const errInfo: FirestoreErrorInfo = {
     error: error instanceof Error ? error.message : String(error),

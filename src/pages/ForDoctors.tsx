@@ -66,7 +66,7 @@ export default function ForDoctors() {
               initial={{ opacity: 0, y: 20 }}
               animate={{ opacity: 1, y: 0 }}
               transition={{ delay: 0.2 }}
-              className="text-xl text-gray-500 max-w-2xl mx-auto leading-relaxed"
+              className="text-xl text-foreground/60 max-w-2xl mx-auto leading-relaxed"
             >
               O SAI oferece ferramentas avançadas para que você possa focar no que realmente importa: a saúde e o bem-estar dos seus pacientes.
             </motion.p>
@@ -80,20 +80,20 @@ export default function ForDoctors() {
                 whileInView={{ opacity: 1, y: 0 }}
                 viewport={{ once: true }}
                 transition={{ delay: index * 0.1 }}
-                className="p-10 bg-white rounded-[40px] shadow-sm border border-gray-100 hover:shadow-xl transition-all group"
+                className="p-10 bg-card rounded-[40px] shadow-sm border border-border hover:shadow-xl transition-all group"
               >
                 <div className={`w-16 h-16 rounded-2xl flex items-center justify-center mb-8 transition-transform group-hover:scale-110 ${tool.color}`}>
                   <tool.icon className="w-8 h-8" />
                 </div>
                 <h3 className="text-2xl font-serif font-bold text-foreground mb-4">{tool.title}</h3>
-                <p className="text-gray-500 leading-relaxed">
+                <p className="text-foreground/60 leading-relaxed">
                   {tool.description}
                 </p>
               </motion.div>
             ))}
           </div>
 
-          <div className="mt-24 p-12 bg-white rounded-[48px] shadow-2xl border border-gray-100 grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
+          <div className="mt-24 p-12 bg-card rounded-[48px] shadow-2xl border border-border grid grid-cols-1 lg:grid-cols-2 gap-16 items-center">
             <motion.div
               initial={{ opacity: 0, x: -30 }}
               whileInView={{ opacity: 1, x: 0 }}
@@ -101,17 +101,17 @@ export default function ForDoctors() {
               className="space-y-8"
             >
               <h2 className="text-4xl font-serif font-bold text-foreground">Menos burocracia, mais medicina</h2>
-              <p className="text-lg text-gray-500 leading-relaxed">
+              <p className="text-lg text-foreground/60 leading-relaxed">
                 Nossa plataforma automatiza as tarefas administrativas repetitivas, permitindo que você tenha mais tempo de qualidade com cada paciente.
               </p>
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
                 <div className="p-6 bg-background rounded-3xl">
                   <p className="text-3xl font-serif font-bold text-primary mb-2">+25%</p>
-                  <p className="text-sm text-gray-500">Aumento na produtividade clínica média.</p>
+                  <p className="text-sm text-foreground/60">Aumento na produtividade clínica média.</p>
                 </div>
                 <div className="p-6 bg-background rounded-3xl">
                   <p className="text-3xl font-serif font-bold text-primary mb-2">-30%</p>
-                  <p className="text-sm text-gray-500">Redução de faltas (no-shows) com lembretes automáticos.</p>
+                  <p className="text-sm text-foreground/60">Redução de faltas (no-shows) com lembretes automáticos.</p>
                 </div>
               </div>
               <button className="bg-primary text-white px-10 py-4 rounded-full font-bold text-lg hover:bg-primary-hover transition-all shadow-xl">
