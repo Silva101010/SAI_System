@@ -1,11 +1,11 @@
 import Layout from '../components/Layout';
 import { useAuth } from '../hooks/useAuth';
-import { useState, useEffect, FormEvent, useMemo } from 'react';
+import { useState, useEffect, FormEvent, useMemo, useRef } from 'react';
 import { collection, getDocs, setDoc, doc, addDoc, query, orderBy, onSnapshot, where, deleteDoc } from 'firebase/firestore';
 import { db, auth } from '../firebase';
 import { UserProfile, DoctorSchedule, Specialty, Appointment, Notification } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Settings, Users, Calendar, Database, Plus, Trash2, ShieldCheck, Stethoscope, CheckCircle2, Search, CalendarPlus, User as UserIcon, UserMinus, RefreshCw, Save, TrendingUp, Clock, AlertCircle, FileText, BarChart3, Activity, ArrowUpRight, ArrowDownRight, Bell, MoreHorizontal, Filter, Download, Lock, Shield, Server } from 'lucide-react';
+import { Settings, Users, Calendar, Database, Plus, Trash2, ShieldCheck, Stethoscope, CheckCircle2, Search, CalendarPlus, User as UserIcon, UserMinus, RefreshCw, Save, TrendingUp, Clock, AlertCircle, FileText, BarChart3, Activity, ArrowUpRight, ArrowDownRight, Bell, MoreHorizontal, Filter, Download, Lock, Shield, Server, X } from 'lucide-react';
 import { toast } from 'sonner';
 import { cn, triggerSyncIndicator } from '../lib/utils';
 import { format, isToday, parseISO, differenceInMinutes, startOfDay, endOfDay, subDays, isWithinInterval, eachDayOfInterval, startOfMonth } from 'date-fns';
@@ -25,6 +25,7 @@ type AdminTab = 'dashboard' | 'users' | 'checkin' | 'monitoring' | 'schedules' |
 
 export default function AdminDashboard() {
   const { profile } = useAuth();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<AdminTab>('dashboard');
   const [users, setUsers] = useState<UserProfile[]>([]);
   const [schedules, setSchedules] = useState<DoctorSchedule[]>([]);
@@ -47,6 +48,18 @@ export default function AdminDashboard() {
   const [isCreatingUser, setIsCreatingUser] = useState(false);
   const [showGreeting, setShowGreeting] = useState(true);
   const { updateAppointmentStatus, deleteAppointment, syncPublicQueue } = useAppointments();
+
+  // Keyboard shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -213,10 +226,13 @@ export default function AdminDashboard() {
   const filteredUsers = useMemo(() => {
     const search = globalSearch.toLowerCase();
     return users.filter(u => 
+      !search ||
       u.name.toLowerCase().includes(search) ||
       u.email.toLowerCase().includes(search) ||
       u.role.toLowerCase().includes(search) ||
-      (u.specialty && u.specialty.toLowerCase().includes(search))
+      u.uid.toLowerCase().includes(search) ||
+      (u.specialty && u.specialty.toLowerCase().includes(search)) ||
+      (u.crm && u.crm.toLowerCase().includes(search))
     );
   }, [users, globalSearch]);
 
@@ -1106,16 +1122,30 @@ export default function AdminDashboard() {
             </div>
           </div>
           <div className="flex items-center gap-3 w-full md:w-auto">
-            <div className="relative flex-1 md:w-64">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40 w-4 h-4" />
+            <div className="relative flex-1 md:w-64 group">
+              <Search className="absolute left-3 top-1/2 -translate-y-1/2 text-foreground/40 w-4 h-4 group-focus-within:text-primary transition-colors" />
               <input 
+                ref={searchInputRef}
                 type="text"
                 placeholder="Busca global..."
                 aria-label="Busca global"
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
-                className="w-full pl-10 pr-4 py-2 bg-background/50 border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground"
+                className="w-full pl-10 pr-16 py-2 bg-background/50 border border-border rounded-xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground"
               />
+              <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
+                {globalSearch && (
+                  <button 
+                    onClick={() => setGlobalSearch('')}
+                    className="p-1 text-foreground/40 hover:text-foreground hover:bg-background rounded-full transition-all"
+                  >
+                    <X className="w-3.5 h-3.5" />
+                  </button>
+                )}
+                <kbd className="hidden md:inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-foreground/40 opacity-100 group-focus-within:hidden">
+                  <span className="text-xs">⌘</span>K
+                </kbd>
+              </div>
             </div>
             <NotificationPanel 
               notifications={notifications}
@@ -1771,51 +1801,70 @@ export default function AdminDashboard() {
                         </tr>
                       </thead>
                       <tbody className="divide-y divide-border">
-                        {filteredUsers.map((u) => (
-                          <tr key={u.uid} className="hover:bg-background/50 transition-colors">
-                            <td className="px-6 py-4">
-                              <div className="flex items-center gap-3">
-                                <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
-                                  {u.name.charAt(0)}
+                        {filteredUsers.length > 0 ? (
+                          filteredUsers.map((u) => (
+                            <tr key={u.uid} className="hover:bg-background/50 transition-colors">
+                              <td className="px-6 py-4">
+                                <div className="flex items-center gap-3">
+                                  <div className="w-8 h-8 rounded-full bg-primary/10 flex items-center justify-center text-primary font-bold text-xs">
+                                    {u.name.charAt(0)}
+                                  </div>
+                                  <div>
+                                    <p className="font-medium text-foreground text-sm">{u.name}</p>
+                                    <p className="text-[10px] text-foreground/40">{u.email}</p>
+                                  </div>
                                 </div>
-                                <div>
-                                  <p className="font-medium text-foreground text-sm">{u.name}</p>
-                                  <p className="text-[10px] text-foreground/40">{u.email}</p>
+                              </td>
+                              <td className="px-6 py-4">
+                                {u.role === 'doctor' ? (
+                                  <span className="text-xs text-primary font-medium bg-primary/5 px-2 py-1 rounded-md">
+                                    {u.specialty || 'Clínico Geral'}
+                                  </span>
+                                ) : (
+                                  <span className="text-xs text-foreground/40">---</span>
+                                )}
+                              </td>
+                              <td className="px-6 py-4">
+                                <select 
+                                  value={u.role}
+                                  onChange={(e) => updateUserRole(u.uid, e.target.value)}
+                                  className="bg-background/50 text-[10px] font-bold uppercase px-3 py-1 rounded-full border border-border focus:ring-2 focus:ring-primary text-foreground outline-none"
+                                >
+                                  <option value="patient">Paciente</option>
+                                  <option value="doctor">Médico</option>
+                                  <option value="receptionist">Rececionista</option>
+                                  <option value="admin">Admin</option>
+                                </select>
+                              </td>
+                              <td className="px-6 py-4 text-right">
+                                <button 
+                                  onClick={() => deleteUser(u.uid)}
+                                  className="text-red-500 hover:bg-red-500/10 p-2 rounded-full transition-colors"
+                                  title="Remover utilizador"
+                                >
+                                  <Trash2 className="w-4 h-4" />
+                                </button>
+                              </td>
+                            </tr>
+                          ))
+                        ) : (
+                          <tr>
+                            <td colSpan={4} className="px-6 py-12 text-center">
+                              <div className="flex flex-col items-center gap-3">
+                                <div className="w-12 h-12 bg-background/50 rounded-full flex items-center justify-center text-foreground/20">
+                                  <Search className="w-6 h-6" />
                                 </div>
+                                <p className="text-sm text-foreground/40">Nenhum utilizador encontrado para "{globalSearch}"</p>
+                                <button 
+                                  onClick={() => setGlobalSearch('')}
+                                  className="text-primary text-xs font-medium hover:underline"
+                                >
+                                  Limpar busca
+                                </button>
                               </div>
                             </td>
-                            <td className="px-6 py-4">
-                              {u.role === 'doctor' ? (
-                                <span className="text-xs text-primary font-medium bg-primary/5 px-2 py-1 rounded-md">
-                                  {u.specialty || 'Clínico Geral'}
-                                </span>
-                              ) : (
-                                <span className="text-xs text-foreground/40">---</span>
-                              )}
-                            </td>
-                            <td className="px-6 py-4">
-                              <select 
-                                value={u.role}
-                                onChange={(e) => updateUserRole(u.uid, e.target.value)}
-                                className="bg-background/50 text-[10px] font-bold uppercase px-3 py-1 rounded-full border border-border focus:ring-2 focus:ring-primary text-foreground outline-none"
-                              >
-                                <option value="patient">Paciente</option>
-                                <option value="doctor">Médico</option>
-                                <option value="receptionist">Rececionista</option>
-                                <option value="admin">Admin</option>
-                              </select>
-                            </td>
-                            <td className="px-6 py-4 text-right">
-                              <button 
-                                onClick={() => deleteUser(u.uid)}
-                                className="text-red-500 hover:bg-red-500/10 p-2 rounded-full transition-colors"
-                                title="Remover utilizador"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </td>
                           </tr>
-                        ))}
+                        )}
                       </tbody>
                     </table>
                   </div>

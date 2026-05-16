@@ -5,7 +5,7 @@ import { motion, AnimatePresence } from 'motion/react';
 import { Calendar, Clock, MapPin, Plus, CheckCircle2, XCircle, AlertCircle, Stethoscope, Trash2, Search, ChevronRight, X, RefreshCw, Bell, Settings, User, Filter, MoreHorizontal, ArrowRight, Loader2, Activity } from 'lucide-react';
 import { format, isAfter, parseISO, isToday, startOfDay, endOfDay, getDay, addMinutes, isBefore, setHours, setMinutes, startOfToday } from 'date-fns';
 import { pt } from 'date-fns/locale';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import { AppointmentStatus, UserProfile, Specialty, Appointment } from '../types';
 import { collection, query, where, getDocs, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
@@ -25,6 +25,7 @@ import { NotificationPanel } from '../components/NotificationPanel';
 
 export default function PatientDashboard() {
   const { profile } = useAuth();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [showNewModal, setShowNewModal] = useState(false);
   const [selectedDoctor, setSelectedDoctor] = useState<UserProfile | null>(null);
   const [doctors, setDoctors] = useState<UserProfile[]>([]);
@@ -36,6 +37,18 @@ export default function PatientDashboard() {
   const [showNotifications, setShowNotifications] = useState(false);
   const [showGreeting, setShowGreeting] = useState(true);
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+
+  // Keyboard shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Temporary greeting effect
   useEffect(() => {
@@ -305,16 +318,30 @@ export default function PatientDashboard() {
           </div>
 
           <div className="flex flex-col sm:flex-row flex-1 max-w-2xl items-center gap-4">
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40" />
+            <div className="relative flex-1 w-full group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40 group-focus-within:text-primary transition-colors" />
               <input 
+                ref={searchInputRef}
                 type="text"
                 placeholder="Procurar consultas ou médicos..."
                 aria-label="Procurar consultas ou médicos"
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-background/50 border border-border rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground"
+                className="w-full pl-11 pr-16 py-3 bg-background/50 border border-border rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground shadow-sm"
               />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {globalSearch && (
+                  <button 
+                    onClick={() => setGlobalSearch('')}
+                    className="p-1.5 text-foreground/40 hover:text-foreground hover:bg-background rounded-full transition-all"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+                <kbd className="hidden md:inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-foreground/40 opacity-100 group-focus-within:hidden">
+                  <span className="text-xs">⌘</span>K
+                </kbd>
+              </div>
             </div>
             <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
               <NotificationPanel 
@@ -533,7 +560,21 @@ export default function PatientDashboard() {
                     </button>
                   ))}
                   {filteredDoctors.length === 0 && (
-                    <p className="text-xs text-foreground/40 italic py-4 text-center">Nenhum médico encontrado com estes filtros.</p>
+                    <div className="text-center py-8">
+                      <div className="w-12 h-12 bg-background/50 rounded-full flex items-center justify-center mx-auto mb-3 text-foreground/20">
+                        <Search className="w-6 h-6" />
+                      </div>
+                      <p className="text-xs text-foreground/40 mb-2">Nenhum médico encontrado com estes filtros.</p>
+                      <button 
+                        onClick={() => {
+                          setGlobalSearch('');
+                          setSelectedSpecialty('');
+                        }}
+                        className="text-primary text-[10px] uppercase font-bold tracking-widest hover:underline"
+                      >
+                        Limpar filtros
+                      </button>
+                    </div>
                   )}
                 </div>
               </div>

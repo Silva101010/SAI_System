@@ -2,12 +2,12 @@ import Layout from '../components/Layout';
 import { useAuth } from '../hooks/useAuth';
 import { useAppointments } from '../hooks/useAppointments';
 import { motion, AnimatePresence } from 'motion/react';
-import { Users, Clock, CheckCircle2, Play, User, AlertCircle, RefreshCw, Calendar, Settings, Save, Plus, Trash2, Stethoscope, Bell, MoreHorizontal, History, FileText, Lock, ArrowRight, Timer, Search } from 'lucide-react';
+import { Users, Clock, CheckCircle2, Play, User, AlertCircle, RefreshCw, Calendar, Settings, Save, Plus, Trash2, Stethoscope, Bell, MoreHorizontal, History, FileText, Lock, ArrowRight, Timer, Search, X } from 'lucide-react';
 import { format, parseISO, isToday, isAfter, differenceInSeconds } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { cn } from '../lib/utils';
 import { Appointment, Specialty, DoctorSchedule, AppointmentStatus } from '../types';
-import { useState, useEffect, useMemo } from 'react';
+import { useState, useEffect, useMemo, useRef } from 'react';
 import ProfileModal from '../components/ProfileModal';
 import { useNotifications } from '../hooks/useNotifications';
 import { NotificationPanel } from '../components/NotificationPanel';
@@ -16,6 +16,7 @@ import { db } from '../firebase';
 
 export default function DoctorDashboard() {
   const { profile } = useAuth();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const { appointments, loading, updateAppointmentStatus, syncPublicQueue } = useAppointments(profile?.uid, 'doctor');
   const [activeTab, setActiveTab] = useState<'queue' | 'agenda' | 'specialty' | 'schedule' | 'info'>('queue');
   const [currentTime, setCurrentTime] = useState(new Date());
@@ -24,6 +25,18 @@ export default function DoctorDashboard() {
   const [isProfileModalOpen, setIsProfileModalOpen] = useState(false);
   const [showGreeting, setShowGreeting] = useState(true);
   const { notifications, unreadCount, markAsRead, markAllAsRead, createNotification, deleteNotification } = useNotifications();
+
+  // Keyboard shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Temporary greeting effect
   useEffect(() => {
@@ -476,16 +489,30 @@ export default function DoctorDashboard() {
             </div>
           </div>
           <div className="flex flex-col sm:flex-row flex-1 max-w-2xl items-center gap-4">
-            <div className="relative flex-1 w-full">
-              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40" />
+            <div className="relative flex-1 w-full group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 w-4 h-4 text-foreground/40 group-focus-within:text-primary transition-colors" />
               <input 
+                ref={searchInputRef}
                 type="text"
                 placeholder="Procurar paciente ou consulta..."
                 aria-label="Procurar paciente ou consulta"
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
-                className="w-full pl-11 pr-4 py-3 bg-background/50 border border-border rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground"
+                className="w-full pl-11 pr-16 py-3 bg-background/50 border border-border rounded-2xl text-sm focus:ring-2 focus:ring-primary/20 outline-none transition-all text-foreground shadow-sm"
               />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {globalSearch && (
+                  <button 
+                    onClick={() => setGlobalSearch('')}
+                    className="p-1.5 text-foreground/40 hover:text-foreground hover:bg-background rounded-full transition-all"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+                <kbd className="hidden md:inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-foreground/40 opacity-100 group-focus-within:hidden">
+                  <span className="text-xs">⌘</span>K
+                </kbd>
+              </div>
             </div>
             <div className="flex items-center gap-3 w-full sm:w-auto justify-end">
               <NotificationPanel 
@@ -814,8 +841,18 @@ export default function DoctorDashboard() {
                   </div>
                 ))}
                 {filteredAgenda.length === 0 && (
-                  <div className="text-center py-12 text-foreground/40 italic bg-background/50 rounded-[24px] border border-dashed border-border">
-                    Nenhum agendamento encontrado para os critérios de busca.
+                  <div className="text-center py-12 px-6">
+                    <div className="w-16 h-16 bg-background/50 rounded-full flex items-center justify-center mx-auto mb-4 text-foreground/20">
+                      <Search className="w-8 h-8" />
+                    </div>
+                    <h4 className="text-lg font-serif font-bold text-foreground mb-1">Sem resultados</h4>
+                    <p className="text-sm text-foreground/40 mb-4">Nenhum agendamento encontrado para "{globalSearch}"</p>
+                    <button 
+                      onClick={() => setGlobalSearch('')}
+                      className="text-primary text-sm font-medium hover:underline"
+                    >
+                      Limpar busca
+                    </button>
                   </div>
                 )}
               </div>

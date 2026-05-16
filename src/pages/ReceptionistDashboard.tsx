@@ -1,12 +1,12 @@
 import Layout from '../components/Layout';
 import { useAuth } from '../hooks/useAuth';
 import { useAppointments } from '../hooks/useAppointments';
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useRef } from 'react';
 import { collection, query, onSnapshot, orderBy } from 'firebase/firestore';
 import { db } from '../firebase';
 import { Appointment } from '../types';
 import { motion, AnimatePresence } from 'motion/react';
-import { Search, CheckCircle2, Clock, Calendar, User, Plus, UserMinus, Bell, AlertCircle, RefreshCw, Users, Stethoscope, Settings } from 'lucide-react';
+import { Search, CheckCircle2, Clock, Calendar, User, Plus, UserMinus, Bell, AlertCircle, RefreshCw, Users, Stethoscope, Settings, X } from 'lucide-react';
 import { format, isToday, parseISO, isAfter } from 'date-fns';
 import { pt } from 'date-fns/locale';
 import { toast } from 'sonner';
@@ -22,6 +22,7 @@ type Tab = 'checkin' | 'agenda';
 
 export default function ReceptionistDashboard() {
   const { profile } = useAuth();
+  const searchInputRef = useRef<HTMLInputElement>(null);
   const [activeTab, setActiveTab] = useState<Tab>('checkin');
   const [globalSearch, setGlobalSearch] = useState('');
   const [appointments, setAppointments] = useState<Appointment[]>([]);
@@ -49,6 +50,18 @@ export default function ReceptionistDashboard() {
 
   const [showGreeting, setShowGreeting] = useState(true);
   const { notifications, unreadCount, markAsRead, markAllAsRead, deleteNotification } = useNotifications();
+
+  // Keyboard shortcut for search
+  useEffect(() => {
+    const handleKeyDown = (e: KeyboardEvent) => {
+      if ((e.ctrlKey || e.metaKey) && e.key === 'k') {
+        e.preventDefault();
+        searchInputRef.current?.focus();
+      }
+    };
+    window.addEventListener('keydown', handleKeyDown);
+    return () => window.removeEventListener('keydown', handleKeyDown);
+  }, []);
 
   // Temporary greeting effect
   useEffect(() => {
@@ -278,16 +291,30 @@ export default function ReceptionistDashboard() {
               </div>
             </div>
 
-            <div className="flex-1 max-w-xl relative">
-              <Search className="absolute left-5 top-1/2 -translate-y-1/2 text-foreground/40 w-5 h-5" />
+            <div className="flex-1 max-w-xl relative group">
+              <Search className="absolute left-4 top-1/2 -translate-y-1/2 text-foreground/40 w-5 h-5 group-focus-within:text-primary transition-colors" />
               <input 
+                ref={searchInputRef}
                 type="text"
                 placeholder="Pesquisar paciente ou código..."
                 aria-label="Pesquisar paciente ou código"
                 value={globalSearch}
                 onChange={(e) => setGlobalSearch(e.target.value)}
-                className="w-full pl-14 pr-6 py-4 bg-background/50 rounded-2xl border border-border focus:outline-none focus:ring-4 focus:ring-primary/10 focus:bg-card transition-all text-sm text-foreground"
+                className="w-full pl-12 pr-16 py-3 bg-background/50 rounded-2xl border border-border focus:outline-none focus:ring-4 focus:ring-primary/10 transition-all text-sm text-foreground shadow-sm"
               />
+              <div className="absolute right-3 top-1/2 -translate-y-1/2 flex items-center gap-2">
+                {globalSearch && (
+                  <button 
+                    onClick={() => setGlobalSearch('')}
+                    className="p-1.5 text-foreground/40 hover:text-foreground hover:bg-background rounded-full transition-all"
+                  >
+                    <X className="w-4 h-4" />
+                  </button>
+                )}
+                <kbd className="hidden md:inline-flex h-5 select-none items-center gap-1 rounded border border-border bg-background px-1.5 font-mono text-[10px] font-medium text-foreground/40 opacity-100 group-focus-within:hidden">
+                  <span className="text-xs">⌘</span>K
+                </kbd>
+              </div>
             </div>
 
             <div className="flex items-center gap-3">
@@ -492,10 +519,23 @@ export default function ReceptionistDashboard() {
                         })}
                         {sortedAppointments.length === 0 && (
                           <tr>
-                            <td colSpan={6} className="px-8 py-20 text-center">
-                              <div className="flex flex-col items-center gap-4 text-foreground/30">
-                                <Users className="w-12 h-12 opacity-20" />
-                                <p className="text-sm font-medium italic">Nenhum agendamento encontrado para hoje.</p>
+                            <td colSpan={7} className="px-8 py-20 text-center">
+                              <div className="flex flex-col items-center gap-4">
+                                <div className="w-16 h-16 bg-background/50 rounded-full flex items-center justify-center mx-auto mb-4 text-foreground/20">
+                                  <Search className="w-8 h-8" />
+                                </div>
+                                <h4 className="text-xl font-serif font-bold text-foreground">Sem resultados</h4>
+                                <p className="text-sm text-foreground/40 mt-1">
+                                  {globalSearch ? `Nenhum agendamento encontrado para "${globalSearch}" hoje.` : 'Nenhum agendamento para hoje.'}
+                                </p>
+                                {globalSearch && (
+                                  <button 
+                                    onClick={() => setGlobalSearch('')}
+                                    className="text-primary text-sm font-medium hover:underline mt-4 px-4 py-2 bg-primary/5 rounded-full"
+                                  >
+                                    Limpar busca
+                                  </button>
+                                )}
                               </div>
                             </td>
                           </tr>
@@ -628,8 +668,26 @@ export default function ReceptionistDashboard() {
                       ))}
                       {allUpcoming.length === 0 && (
                         <tr>
-                          <td colSpan={6} className="px-8 py-20 text-center text-foreground/40 italic">
-                            Nenhum agendamento futuro encontrado.
+                          <td colSpan={6} className="px-8 py-20 text-center">
+                            <div className="flex flex-col items-center gap-4">
+                              <div className="w-16 h-16 bg-background/50 rounded-full flex items-center justify-center text-foreground/20">
+                                <Calendar className="w-8 h-8" />
+                              </div>
+                              <div className="max-w-xs mx-auto">
+                                <p className="text-sm font-serif font-bold text-foreground">Nenhum agendamento futuro</p>
+                                <p className="text-xs text-foreground/40 mt-1">
+                                  {globalSearch ? `Sem resultados para "${globalSearch}" nos próximos dias.` : 'Não há pacientes agendados para datas futuras.'}
+                                </p>
+                                {globalSearch && (
+                                  <button 
+                                    onClick={() => setGlobalSearch('')}
+                                    className="text-primary text-xs font-medium hover:underline mt-4"
+                                  >
+                                    Limpar busca
+                                  </button>
+                                )}
+                              </div>
+                            </div>
                           </td>
                         </tr>
                       )}
